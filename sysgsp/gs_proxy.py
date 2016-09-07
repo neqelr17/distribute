@@ -7,6 +7,8 @@ Receives n clients and distributes to n workers based off of availability and
 performance.
 """
 
+from collections import deque
+
 
 import zmq
 
@@ -25,7 +27,7 @@ def main():
     backend.bind('tcp://*:5559')
 
     # Initialize main loop state
-    workers = []
+    workers = deque()
     poller = zmq.Poller()
     # Only poll for requests from backend until workers are available
     poller.register(backend, zmq.POLLIN)
@@ -50,7 +52,8 @@ def main():
             if frontend in sockets:
                 # Get next client request, route to last-used worker
                 client, empty, request = frontend.recv_multipart()
-                worker = workers.pop(0)
+                worker = workers.popleft()
+                # worker = workers.pop()
                 backend.send_multipart([worker, b'', client, b'', request])
                 if not workers:
                     # Don't poll clients if no workers are available

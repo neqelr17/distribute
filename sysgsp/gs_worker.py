@@ -24,6 +24,7 @@ def gs_task(ident):
     context = zmq.Context()
     work_socket = context.socket(zmq.REQ)
     work_socket.identity = 'gs_worker{}'.format(ident).encode(ENCODING)
+    # work_socket.connect('tcp://172.27.110.164:5559')
     work_socket.connect('tcp://localhost:5559')
 
     try:
@@ -34,8 +35,8 @@ def gs_task(ident):
             address, empty, request = work_socket.recv_multipart()
             print("{}: {}".format(work_socket.identity.decode(ENCODING),
                               request.decode(ENCODING)))
-            work_socket.send_multipart([address, b'', b'OKAY'])
-            time.sleep(int(ident))
+            work_socket.send_multipart([address, b'', 'OKAY{}'.format(ident).encode('ascii')])
+            # time.sleep(int(ident))
     except KeyboardInterrupt:
         print('\nGot ctrl-c')
         print('Shutting down')
@@ -47,7 +48,7 @@ def gs_task(ident):
 
 def main():
     """Start worker."""
-    gs_task(sys.argv[1])
+    gs_task(1)
 
 if __name__ == "__main__":
     main()
