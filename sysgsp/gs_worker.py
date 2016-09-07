@@ -7,7 +7,8 @@ One Worker will spawn off n amount of tasks to do the actuall work.
 """
 
 
-import multiprocessing
+import sys
+import time
 
 
 import zmq
@@ -25,27 +26,28 @@ def gs_task(ident):
     work_socket.identity = 'gs_worker{}'.format(ident).encode(ENCODING)
     work_socket.connect('tcp://localhost:5559')
 
-    # Tell broker we're ready for work
-    work_socket.send(b'READY')
-
     try:
+        # Tell broker we're ready for work
+        work_socket.send(b'READY')
+
         while True:
             address, empty, request = work_socket.recv_multipart()
             print("{}: {}".format(work_socket.identity.decode(ENCODING),
                               request.decode(ENCODING)))
             work_socket.send_multipart([address, b'', b'OKAY'])
+            time.sleep(int(ident))
     except KeyboardInterrupt:
         print('\nGot ctrl-c')
         print('Shutting down')
 
-    # Clean up
-    work_socket.close()
-    context.term()
+        # Clean up
+        work_socket.close()
+        context.term()
 
 
 def main():
     """Start worker."""
-    gs_task(0)
+    gs_task(sys.argv[1])
 
 if __name__ == "__main__":
     main()

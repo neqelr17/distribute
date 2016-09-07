@@ -20,9 +20,9 @@ def main():
     # Prepare context and sockets
     context = zmq.Context.instance()
     frontend = context.socket(zmq.ROUTER)
-    frontend.bind('tcp://localhost:5558')
+    frontend.bind('tcp://*:5558')
     backend = context.socket(zmq.ROUTER)
-    backend.bind('tcp://localhost:5559')
+    backend.bind('tcp://*:5559')
 
     # Initialize main loop state
     workers = []
